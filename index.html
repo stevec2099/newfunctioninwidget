@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self' https://sdk-cdn.mypurecloud.com https://apps.mypurecloud.com https://apps.euw2.pure.cloud https://api.euw2.pure.cloud https://login.euw2.pure.cloud; script-src 'self' 'unsafe-inline' https://sdk-cdn.mypurecloud.com; style-src 'self' 'unsafe-inline'; connect-src https://sdk-cdn.mypurecloud.com https://apps.mypurecloud.com https://apps.euw2.pure.cloud https://api.euw2.pure.cloud https://login.euw2.pure.cloud wss://streaming.euw2.pure.cloud; img-src 'self' data:; frame-ancestors https://apps.euw2.pure.cloud https://apps.mypurecloud.com;"
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Outbound Call Widget</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --border: #d8dee8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #059669;
+      --danger: #dc2626;
+      --warning: #b45309;
+      --soft: #eef2ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 18px;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 10px;
+    }
+
+    h1 { font-size: 22px; }
+    h2 { font-size: 16px; }
+    h3 { font-size: 14px; }
+
+    .sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .row {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .primary:hover { background: var(--primary-hover); }
+
+    .secondary {
+      background: #eef2f7;
+      color: var(--text);
+    }
+
+    .danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #eef2f7;
+      color: var(--text);
+    }
+
+    .pill.success {
+      background: #ecfdf5;
+      color: var(--success);
+    }
+
+    .pill.error {
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    .pill.warn {
+      background: #fff7ed;
+      color: var(--warning);
+    }
+
+    .statusBox {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 64px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fafbfd;
+    }
+
+    .mini .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .mini .v {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .participant {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .participantHeader {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .participantName {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .mono {
+      font-family: Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stack > * + * {
+      margin-top: 12px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Outbound Call Widget</h1>
+      <p class="sub">Supported outbound call flow with live conversation polling.</p>
+
+      <div class="row">
+        <label for="environment">Environment</label>
+        <select id="environment">
+          <option value="euw2.pure.cloud" selected>euw2.pure.cloud</option>
+          <option value="mypurecloud.com">mypurecloud.com</option>
+          <option value="use1.pure.cloud">use1.pure.cloud</option>
+          <option value="cac1.pure.cloud">cac1.pure.cloud</option>
+          <option value="aps1.pure.cloud">aps1.pure.cloud</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="destinationNumber">Destination number</label>
+        <input id="destinationNumber" type="text" placeholder="+27115466716" />
+      </div>
+
+      <div class="row">
+        <label for="callerIdName">Caller ID name</label>
+        <input id="callerIdName" type="text" placeholder="Company Name" />
+      </div>
+
+      <div class="row">
+        <label for="uuiData">UUI data</label>
+        <input id="uuiData" type="text" placeholder="Optional" />
+      </div>
+
+      <div class="actions">
+        <button id="initializeBtn" class="secondary">Initialize</button>
+        <button id="loginBtn" class="secondary">Login</button>
+        <button id="placeCallBtn" class="primary">Place Call</button>
+        <button id="refreshBtn" class="secondary">Refresh</button>
+        <button id="stopPollingBtn" class="secondary">Stop Auto Refresh</button>
+        <button id="clearBtn" class="secondary">Clear</button>
+      </div>
+
+      <div class="meta">
+        <div class="mini">
+          <div class="k">Initialized</div>
+          <div class="v" id="initializedValue">No</div>
+        </div>
+        <div class="mini">
+          <div class="k">Logged in</div>
+          <div class="v" id="loggedInValue">No</div>
+        </div>
+        <div class="mini">
+          <div class="k">Polling</div>
+          <div class="v" id="pollingValue">Stopped</div>
+        </div>
+        <div class="mini">
+          <div class="k">Conversation ID</div>
+          <div class="v mono" id="conversationIdValue">-</div>
+        </div>
+      </div>
+
+      <div id="status" class="statusBox">Ready.</div>
+
+      <div class="small" style="margin-top:12px;">
+        Replace and ANI spoof logic are not included here. This widget follows the supported call creation path only.
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <h2>Conversation Summary</h2>
+        <div id="summaryArea" class="small">No conversation loaded yet.</div>
+      </div>
+
+      <div class="card">
+        <h2>Participants</h2>
+        <div id="participantsArea" class="small">No participants yet.</div>
+      </div>
+
+      <div class="card">
+        <h2>Debug Output</h2>
+        <textarea id="output" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://sdk-cdn.mypurecloud.com/javascript/220.0.0/purecloud-platform-client-v2.min.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const state = {
+        initialized: false,
+        loggedIn: false,
+        environment: "euw2.pure.cloud",
+        conversationId: null,
+        lastConversation: null,
+        pollTimer: null,
+        polling: false
+      };
+
+      const client = platformClient.ApiClient.instance;
+      const conversationsApi = new platformClient.ConversationsApi();
+      const usersApi = new platformClient.UsersApi();
+
+      const el = {
+        environment: document.getElementById("environment"),
+        destinationNumber: document.getElementById("destinationNumber"),
+        callerIdName: document.getElementById("callerIdName"),
+        uuiData: document.getElementById("uuiData"),
+        initializeBtn: document.getElementById("initializeBtn"),
+        loginBtn: document.getElementById("loginBtn"),
+        placeCallBtn: document.getElementById("placeCallBtn"),
+        refreshBtn: document.getElementById("refreshBtn"),
+        stopPollingBtn: document.getElementById("stopPollingBtn"),
+        clearBtn: document.getElementById("clearBtn"),
+        status: document.getElementById("status"),
+        output: document.getElementById("output"),
+        initializedValue: document.getElementById("initializedValue"),
+        loggedInValue: document.getElementById("loggedInValue"),
+        pollingValue: document.getElementById("pollingValue"),
+        conversationIdValue: document.getElementById("conversationIdValue"),
+        summaryArea: document.getElementById("summaryArea"),
+        participantsArea: document.getElementById("participantsArea")
+      };
+
+      function updateMeta() {
+        el.initializedValue.textContent = state.initialized ? "Yes" : "No";
+        el.loggedInValue.textContent = state.loggedIn ? "Yes" : "No";
+        el.pollingValue.textContent = state.polling ? "Running" : "Stopped";
+        el.conversationIdValue.textContent = state.conversationId || "-";
+      }
+
+      function setStatus(message, type) {
+        el.status.textContent = message;
+        el.status.style.color =
+          type === "error" ? "#dc2626" :
+          type === "success" ? "#059669" :
+          "#1f2937";
+      }
+
+      function appendOutput(label, data) {
+        const block = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+        const entry = `[${new Date().toISOString()}] ${label}\n${block}\n\n`;
+        el.output.value = entry + el.output.value;
+      }
+
+      function normalizePhone(value) {
+        return String(value || "").trim();
+      }
+
+      function startPolling() {
+        stopPolling();
+        state.polling = true;
+        updateMeta();
+
+        state.pollTimer = setInterval(async function () {
+          if (!state.loggedIn || !state.conversationId) {
+            stopPolling();
+            return;
+          }
+
+          try {
+            await refreshConversation(false);
+          } catch (error) {
+            appendOutput("Polling error", normalizeError(error).full);
+          }
+        }, 2000);
+      }
+
+      function stopPolling() {
+        if (state.pollTimer) {
+          clearInterval(state.pollTimer);
+          state.pollTimer = null;
+        }
+        state.polling = false;
+        updateMeta();
+      }
+
+      async function initializeClient() {
+        state.environment = el.environment.value.trim();
+        client.setEnvironment(state.environment);
+        state.initialized = true;
+        updateMeta();
+        setStatus("Initialized for " + state.environment, "success");
+        appendOutput("Initialized", { environment: state.environment });
+      }
+
+      async function login() {
+        if (!state.initialized) {
+          await initializeClient();
+        }
+
+        try {
+          await client.loginImplicitGrant(
+            "d76d95d8-69b2-47d0-bbf0-87d5d5d9a2da",
+            "https://stevec2099.github.io/newfunctioninwidget/index.html",
+            {}
+          );
+
+          state.loggedIn = true;
+          updateMeta();
+
+          const me = await usersApi.getUsersMe({ expand: ["presence"] });
+          setStatus("Logged in as " + (me.name || me.username || me.id), "success");
+          appendOutput("Logged in user", me);
+        } catch (error) {
+          state.loggedIn = false;
+          updateMeta();
+          handleError("Login failed", error);
+        }
+      }
+
+      async function placeCall() {
+        try {
+          if (!state.loggedIn) {
+            throw new Error("Log in first.");
+          }
+
+          const phoneNumber = normalizePhone(el.destinationNumber.value);
+          const callerIdName = String(el.callerIdName.value || "").trim();
+          const uuiData = String(el.uuiData.value || "").trim();
+
+          if (!phoneNumber) {
+            throw new Error("Destination number is required.");
+          }
+
+          const body = {
+            phoneNumber: phoneNumber
+          };
+
+          if (callerIdName) body.callerIdName = callerIdName;
+          if (uuiData) body.uuiData = uuiData;
+
+          setStatus("Placing outbound call...", "");
+          appendOutput("Create call request", body);
+
+          const response = await conversationsApi.postConversationsCalls(body);
+
+          state.conversationId = response.id || response.conversationId || null;
+          state.lastConversation = response;
+          updateMeta();
+
+          appendOutput("Create call response", response);
+
+          setStatus(
+            "Call placed successfully." +
+            (state.conversationId ? "\nConversation ID: " + state.conversationId : ""),
+            "success"
+          );
+
+          if (state.conversationId) {
+            await refreshConversation(true);
+            startPolling();
+          }
+        } catch (error) {
+          handleError("Failed to place call", error);
+        }
+      }
+
+      async function refreshConversation(showStatus) {
+        if (!state.loggedIn) {
+          throw new Error("Log in first.");
+        }
+
+        if (!state.conversationId) {
+          throw new Error("No conversation ID available.");
+        }
+
+        const conversation = await conversationsApi.getConversation(state.conversationId);
+        state.lastConversation = conversation;
+
+        renderConversation(conversation);
+        appendOutput("Conversation refresh", conversation);
+
+        if (showStatus !== false) {
+          setStatus("Conversation refreshed.", "success");
+        }
+      }
+
+      function renderConversation(conversation) {
+        const participants = Array.isArray(conversation.participants) ? conversation.participants : [];
+
+        const summaryLines = [];
+        summaryLines.push("Conversation ID: " + (conversation.id || state.conversationId || "-"));
+        summaryLines.push("Participants: " + participants.length);
+
+        const states = participants.map(function (p) {
+          const call = Array.isArray(p.calls) && p.calls.length ? p.calls[0] : null;
+          return {
+            purpose: p.purpose || "unknown",
+            participantState: p.state || "n/a",
+            callState: call && call.state ? call.state : "n/a",
+            address: p.address || "n/a"
+          };
+        });
+
+        states.forEach(function (item, idx) {
+          summaryLines.push(
+            (idx + 1) + ". " +
+            item.purpose + " | " +
+            item.address + " | participant=" + item.participantState + " | call=" + item.callState
+          );
+        });
+
+        el.summaryArea.textContent = summaryLines.join("\n");
+
+        if (!participants.length) {
+          el.participantsArea.innerHTML = '<div class="small">No participants found.</div>';
+          return;
+        }
+
+        el.participantsArea.innerHTML = participants.map(function (p) {
+          const call = Array.isArray(p.calls) && p.calls.length ? p.calls[0] : {};
+          const attrs = p.attributes ? JSON.stringify(p.attributes, null, 2) : "{}";
+
+          return `
+            <div class="participant">
+              <div class="participantHeader">
+                <div class="participantName">${escapeHtml(p.name || p.address || p.id || "Participant")}</div>
+                <span class="pill ${stateClass(call.state || p.state)}">${escapeHtml(call.state || p.state || "unknown")}</span>
+              </div>
+              <div><strong>Purpose:</strong> ${escapeHtml(p.purpose || "-")}</div>
+              <div><strong>Address:</strong> ${escapeHtml(p.address || "-")}</div>
+              <div><strong>Participant ID:</strong> <span class="mono">${escapeHtml(p.id || "-")}</span></div>
+              <div><strong>Direction:</strong> ${escapeHtml(call.direction || p.direction || "-")}</div>
+              <div><strong>Connected:</strong> ${escapeHtml(call.connectedTime || p.connectedTime || "-")}</div>
+              <div><strong>Muted:</strong> ${String(call.muted ?? p.muted ?? false)}</div>
+              <div style="margin-top:8px;"><strong>Attributes:</strong></div>
+              <pre class="mono" style="white-space:pre-wrap; margin:6px 0 0;">${escapeHtml(attrs)}</pre>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function stateClass(value) {
+        const v = String(value || "").toLowerCase();
+        if (v === "connected") return "success";
+        if (v === "disconnected" || v === "terminated") return "error";
+        return "warn";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function normalizeError(error) {
+        if (!error) {
+          return { message: "Unknown error", full: { message: "Unknown error" } };
+        }
+
+        if (error.body) {
+          try {
+            const parsed = typeof error.body === "string" ? JSON.parse(error.body) : error.body;
+            return {
+              message: parsed.message || error.message || "Request failed",
+              full: parsed
+            };
+          } catch (_) {
+            return {
+              message: error.message || "Request failed",
+              full: error.body
+            };
+          }
+        }
+
+        return {
+          message: error.message || "Unexpected error",
+          full: error
+        };
+      }
+
+      function handleError(prefix, error) {
+        const details = normalizeError(error);
+        setStatus(prefix + ": " + details.message, "error");
+        appendOutput(prefix, details.full);
+      }
+
+      function clearAll() {
+        stopPolling();
+        state.conversationId = null;
+        state.lastConversation = null;
+        el.destinationNumber.value = "";
+        el.callerIdName.value = "";
+        el.uuiData.value = "";
+        el.summaryArea.textContent = "No conversation loaded yet.";
+        el.participantsArea.innerHTML = '<div class="small">No participants yet.</div>';
+        el.output.value = "";
+        updateMeta();
+        setStatus("Cleared.", "");
+      }
+
+      el.initializeBtn.addEventListener("click", function () {
+        initializeClient().catch(function (error) {
+          handleError("Initialize failed", error);
+        });
+      });
+
+      el.loginBtn.addEventListener("click", function () {
+        login();
+      });
+
+      el.placeCallBtn.addEventListener("click", function () {
+        placeCall();
+      });
+
+      el.refreshBtn.addEventListener("click", function () {
+        refreshConversation(true).catch(function (error) {
+          handleError("Refresh failed", error);
+        });
+      });
+
+      el.stopPollingBtn.addEventListener("click", function () {
+        stopPolling();
+        setStatus("Auto refresh stopped.", "");
+      });
+
+      el.clearBtn.addEventListener("click", function () {
+        clearAll();
+      });
+
+      updateMeta();
+      setStatus("Ready. Initialize first, then log in.", "");
+    })();
+  </script>
+</body>
+</html>
